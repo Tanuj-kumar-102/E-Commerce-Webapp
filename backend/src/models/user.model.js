@@ -46,16 +46,16 @@ const userSchema = new mongoose.Schema(
             type: Number,
             unique: true
         },
-        address: {
-            type: [addressSchema]
-        },
+        address: [{
+            type: addressSchema
+        }],
         avtar: {
             type: String,
         },
-        order: {
-            type: [ mongoose.Schema.Types.ObjectId ],
+        order: [{
+            type: mongoose.Schema.Types.ObjectId,
             ref: "Product"
-        },
+        }],
         refreshToken: {
             type: String
         }
