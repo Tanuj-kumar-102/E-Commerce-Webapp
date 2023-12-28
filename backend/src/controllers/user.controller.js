@@ -194,9 +194,115 @@ const refreshAccessToken = asyncHandler( async (req, res)  =>{
     }
 })
 
+const changeCurrentPassword = asyncHandler( async (req, res) => {
+    const {oldPassword, newPassword} = req.body
+
+    if(!(oldPassword && newPassword)) {
+        throw new ApiError(400, "all field is required");
+    }
+
+    const user = await User.findById(req.user?._id);
+    
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+
+    if(!isPasswordCorrect) {
+        throw new ApiError(400, "current password is wrong");
+    }
+
+    user.password = newPassword;
+    await user.save({validateBeforeSave: false});
+
+    return res.
+    status(200)
+    .json(
+        new ApiResponse(
+            200,
+            {},
+            "password successfuly updated"
+        )
+    );
+});
+
+const getCurrentUser = asyncHandler( async (req, res) => {
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            req.user,
+            "current user fetch successfuly"
+        )
+    );
+});
+
+const updateAccountDetails = asyncHandler( async (req, res) => {
+    const {fullName, email} = req.body
+
+    if(!fullName || !email) {
+        throw new ApiError(400, "All field is required")
+    }
+
+    const user = User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {
+                fullName,
+                email
+            }
+        },
+        {new: true}
+    ).select("-password -refreshToken");
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            user,
+            "upadate Account successfuly"
+        )
+    );
+});
+
+const updateUserAvtar = asyncHandler( async (req, res) => {
+    const avtarLocalPath = req.file?.avtar[0]?.path
+
+    if(!avtarLocalPath) {
+        throw new ApiError(400, "avtar file is missing")
+    }
+
+    const avtar = await uploadOnCloudinary(avtarLocalPath);
+
+    if(!avtar.url) {
+        throw new ApiError(401, "avtar updated on server error");
+    }
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            avtar: avtar.url
+        },
+        {
+            new: true
+        }).select("-password -refreshToken");
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            user,
+            "upated avtar successfully"
+        )
+    );
+});
+
 export { 
     registerUser,
     loginUser,
     logoutUser,
-    refreshAccessToken
+    refreshAccessToken,
+    changeCurrentPassword,
+    getCurrentUser,
+    updateAccountDetails,
+    updateUserAvtar
 }
