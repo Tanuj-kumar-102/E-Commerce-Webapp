@@ -294,7 +294,7 @@ const updateUserAvtar = asyncHandler( async (req, res) => {
             "upated avtar successfully"
         )
     );
-});
+}); 
 
 export { 
     registerUser,
